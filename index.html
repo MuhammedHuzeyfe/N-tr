@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Çalışmaya yönlendiriliyorsunuz</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 560px; margin: 15vh auto; padding: 0 16px; color: #222; text-align: center; line-height: 1.5; }
+  a { color: #5b3fd6; }
+</style>
+</head>
+<body>
+<p id="msg">Çalışmaya yönlendiriliyorsunuz, lütfen bekleyin…</p>
+<noscript><p>Bu sayfanın çalışması için tarayıcınızda JavaScript açık olmalıdır.</p></noscript>
+
+<script>
+(function () {
+  // ---------------- AYARLAR ----------------
+  var FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSdTuBEBTh91LFR9eDI5x3O2cE18kcSNb-5ZEX7n0qBodXSI0g/viewform";
+  var ENTRY_KOD   = "entry.34026945";    // "Katılımcı kodu" sorusu
+  var ENTRY_KOSUL = "entry.1262131481";  // "Koşul" sorusu
+  var KOSULLAR    = ["A", "B", "C", "D"]; // Formdaki seçeneklerle birebir aynı olmalı
+  var ANAHTAR     = "cyberball_atama_v1";  // Aynı tarayıcıda tekrar açılırsa aynı atamayı korumak için
+  // -----------------------------------------
+
+  // 0 ile n-1 arasında eşit olasılıklı rastgele tam sayı
+  function rastgele(n) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var d = new Uint32Array(1);
+      var sinir = Math.floor(4294967296 / n) * n;
+      do { window.crypto.getRandomValues(d); } while (d[0] >= sinir);
+      return d[0] % n;
+    }
+    return Math.floor(Math.random() * n);
+  }
+
+  // Karışması kolay karakterler (0/O, 1/I) çıkarılmış 8 karakterlik kod, ör. P7KX2MQ9
+  function kodUret() {
+    var harfler = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    var kod = "P";
+    for (var i = 0; i < 7; i++) kod += harfler.charAt(rastgele(harfler.length));
+    return kod;
+  }
+
+  // Aynı kişi bağlantıyı tekrar açarsa aynı kodu ve koşulu alsın
+  var atama = null;
+  try { atama = JSON.parse(window.localStorage.getItem(ANAHTAR)); } catch (e) { atama = null; }
+  if (!atama || !atama.kod || KOSULLAR.indexOf(atama.kosul) === -1) {
+    atama = { kod: kodUret(), kosul: KOSULLAR[rastgele(KOSULLAR.length)] };
+    try { window.localStorage.setItem(ANAHTAR, JSON.stringify(atama)); } catch (e) {}
+  }
+
+  var hedef = FORM_URL + "?usp=pp_url"
+    + "&" + ENTRY_KOD   + "=" + encodeURIComponent(atama.kod)
+    + "&" + ENTRY_KOSUL + "=" + encodeURIComponent(atama.kosul);
+
+  document.getElementById("msg").innerHTML =
+    'Çalışmaya yönlendiriliyorsunuz… Otomatik olarak açılmazsa <a href="' + hedef + '">buraya tıklayın</a>.';
+
+  window.location.replace(hedef);
+})();
+</script>
+</body>
+</html>
